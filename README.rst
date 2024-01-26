@@ -1,10 +1,11 @@
 ======
-Python启航
+Python启航：PyStart
 ======
-专为Python新人设计的一站式Python编程学习使用环境。
+一站式Python编程环境（IDE）解决方案；中文界面，下载即运行。
 
 
 Sponsors
 ----------
 感谢Thonny作者提供了基础框架
+
 You can sponsor development of Thonny by sending a donation to Thonny's main author Aivar Annamaa: https://github.com/thonny/thonny/wiki/Sponsors
