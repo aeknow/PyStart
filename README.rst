@@ -1,7 +1,7 @@
 ======
 Python启航：PyStart
 ======
-一站式Python编程环境（IDE）解决方案；中文界面，下载即运行。
+一站式Python编程环境（IDE）解决方案；中文界面，下载即可开始编程。
 
 
 Sponsors
