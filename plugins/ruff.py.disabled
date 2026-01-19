@@ -1,0 +1,51 @@
+import subprocess
+import typing
+import os
+from logging import getLogger
+
+from thonny import get_workbench
+from thonny.lsp_proxy import LanguageServerProxy
+from thonny.running import create_frontend_python_process
+
+logger = getLogger(__name__)
+
+class RuffProxy(LanguageServerProxy):
+
+    def get_settings(self) -> dict:
+        """获取 Ruff 语言服务器的配置设置"""
+        # 使用内联配置，避免读取系统目录中可能存在的损坏配置文件
+        return {
+            # 优先使用编辑器配置，忽略文件系统中的配置文件
+            "configurationPreference": "editorFirst",
+            # 基本配置
+            "lineLength": 88,
+            "lint": {
+                "enable": True,
+                "select": ["E4", "E7", "E9", "F"],
+                "ignore": [],
+            },
+            # 排除系统目录
+            "exclude": [
+                "**/site-packages/**",
+                "**/Lib/test/**",
+                "**/.venv/**",
+                "**/venv/**",
+                "**/__pycache__/**",
+            ],
+        }
+
+    def _create_server_process(self) -> subprocess.Popen[bytes]:
+        return create_frontend_python_process(
+            ["-m", "ruff", "server"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=False,
+        )
+
+    def get_supported_language_ids(self) -> typing.Set[str]:
+        return {"python"}
+
+
+def load_plugin():
+    get_workbench().add_language_server_proxy_class(RuffProxy)
