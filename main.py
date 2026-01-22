@@ -191,9 +191,19 @@ def _set_dpi_aware():
     if sys.platform == "win32":
         try:
             import ctypes
-
-            PROCESS_SYSTEM_DPI_AWARE = 1
-            ctypes.OleDLL("shcore").SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE)
+            
+            # 尝试使用 Per-Monitor DPI Aware V2 (Windows 10 1703+)
+            # DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4
+            try:
+                ctypes.windll.user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+            except (AttributeError, OSError):
+                # 回退到 Per-Monitor DPI Aware (Windows 8.1+)
+                # PROCESS_PER_MONITOR_DPI_AWARE = 2
+                try:
+                    ctypes.OleDLL("shcore").SetProcessDpiAwareness(2)
+                except (AttributeError, OSError):
+                    # 最后回退到 System DPI Aware
+                    ctypes.windll.user32.SetProcessDPIAware()
         except (ImportError, AttributeError, OSError):
             pass
 
@@ -232,12 +242,6 @@ def _parse_arguments_to_dict(raw_args: List[str]) -> Dict[str, Any]:
         help="",
         nargs="*",
         metavar="<python_file>",
-    )
-
-    parser.add_argument(
-        "--replayer",
-        help="Open the log file in Replayer. Pass empty string to open Replayer without loading a file",
-        metavar="<log_file>",
     )
 
     parsed_args = vars(parser.parse_args(args=raw_args))

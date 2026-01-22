@@ -75,4 +75,4 @@ def open_help():
 
 def load_plugin() -> None:
     get_workbench().add_view(HelpView, tr("Help"), "ne")
-    get_workbench().add_command("help_contents", "help", tr("Help contents"), open_help, group=30)
+    get_workbench().add_command("help_contents", "help", tr("速查手册"), open_help, group=30)

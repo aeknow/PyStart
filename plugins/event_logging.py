@@ -265,11 +265,15 @@ def get_log_dir():
 
 
 def export():
-    messagebox.showinfo(
-        "Info",
-        "For exporting usage logs, please select 'Tools => Open Replayer...'\n"
-        "and click on the " + get_menu_char() + " button in the upper-right corner of the window",
-    )
+    log_dir = get_log_dir()
+    if os.path.exists(log_dir):
+        import subprocess
+        subprocess.Popen(['explorer', log_dir])
+    else:
+        messagebox.showinfo(
+            "Info",
+            "日志目录不存在",
+        )
 
 
 def format_time_range(

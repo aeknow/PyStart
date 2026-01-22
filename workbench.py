@@ -339,17 +339,6 @@ class Workbench(tk.Tk):
                     file = os.path.join(parsed_args["cwd"], file)
                 self._editor_notebook.show_file(file)
 
-            replayer_file = parsed_args["replayer"]
-            # NB! replayer_file may be empty string
-            if replayer_file is not None:
-                replayer_file = replayer_file.strip() or None
-                if replayer_file is not None and not os.path.isabs(replayer_file):
-                    replayer_file = os.path.join(parsed_args["cwd"], replayer_file)
-
-                from pystart.plugins import replayer
-
-                replayer.open_replayer(replayer_file)
-
         except Exception:
             self.report_exception()
 
@@ -576,19 +565,28 @@ class Workbench(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _init_icon(self) -> None:
-        # Window icons
-        if running_on_linux() and ui_utils.get_tk_version_info() >= (8, 6):
-            self.iconphoto(True, self.get_image("pystart.png"))
-        else:
-            icon_file = os.path.join(self.get_package_dir(), "res", "pystart.ico")
+        # Window icons - 使用 iconphoto 支持高 DPI 显示
+        if ui_utils.get_tk_version_info() >= (8, 6):
             try:
-                self.iconbitmap(icon_file, default=icon_file)
+                # 直接使用高分辨率 PNG，iconphoto 会自动缩放
+                icon_path = os.path.join(self.get_package_dir(), "res", "pystart.png")
+                if os.path.exists(icon_path):
+                    icon = tk.PhotoImage(file=icon_path)
+                    self.iconphoto(True, icon)
+                    self._images.add(icon)  # 保持引用防止被回收
+                    return
             except Exception:
-                try:
-                    # seems to work in mac
-                    self.iconbitmap(icon_file)
-                except Exception:
-                    pass
+                pass
+        
+        # 回退到 iconbitmap (旧版 Tk 或出错时)
+        icon_file = os.path.join(self.get_package_dir(), "res", "pystart.ico")
+        try:
+            self.iconbitmap(icon_file, default=icon_file)
+        except Exception:
+            try:
+                self.iconbitmap(icon_file)
+            except Exception:
+                pass
 
     def _init_menu(self) -> None:
         self.option_add("*tearOff", tk.FALSE)
@@ -2791,10 +2789,6 @@ class Workbench(tk.Tk):
         self._closing = True
         self.shut_down_language_servers()
         try:
-            from pystart.plugins import replayer
-
-            if replayer.instance is not None:
-                replayer.instance.close()
             self._save_layout()
             self._editor_notebook.remember_open_files()
             self.event_generate("WorkbenchClose", widget=self)
